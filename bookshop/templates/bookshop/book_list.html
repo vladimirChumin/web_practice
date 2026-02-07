@@ -1,0 +1,32 @@
+<html>
+<head><meta charset="utf-8"><title>Каталог</title></head>
+<body>
+  <h1>Каталог книг</h1>
+
+  <p><a href="{% url 'bookshop:create' %}">Добавить новый элемент</a></p>
+
+  <ul>
+    {% for b in books %}
+      <li>
+        <b>{{ b.title }}</b> — {{ b.author }} — {{ b.price }}
+        [<a href="{% url 'bookshop:edit' b.pk %}">Изменить</a>]
+        [<a href="{% url 'bookshop:delete' b.pk %}">Удалить</a>]
+      </li>
+    {% empty %}
+      <li>Книг нет</li>
+    {% endfor %}
+  </ul>
+
+  {% if is_paginated %}
+    <div>
+      {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}">Назад</a>
+      {% endif %}
+      <span>Стр. {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}">Вперед</a>
+      {% endif %}
+    </div>
+  {% endif %}
+</body>
+</html>

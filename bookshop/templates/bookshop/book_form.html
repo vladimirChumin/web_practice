@@ -1,0 +1,12 @@
+<html>
+<head><meta charset="utf-8"><title>Книга</title></head>
+<body>
+  <h1>Книга</h1>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Сохранить</button>
+  </form>
+  <p><a href="{% url 'bookshop:list' %}">Назад</a></p>
+</body>
+</html>

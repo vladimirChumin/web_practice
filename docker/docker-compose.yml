@@ -1,4 +1,23 @@
 services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: bookshop
+      MYSQL_USER: bookshop_admin
+      MYSQL_PASSWORD: q
+    ports:
+      - "3308:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-prootpassword"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
   web:
     build:
       context: ..
@@ -6,9 +25,22 @@ services:
     container_name: django-web
     ports:
       - "8080:8000"
+    command: >
+      sh -c "
+      python manage.py migrate &&
+      python manage.py seed_books &&
+      python manage.py runserver 0.0.0.0:8000
+      "
     working_dir: /work
     volumes:
       - ..:/work:cached
     environment:
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+volumes:
+  mysql_data:
+
