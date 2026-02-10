@@ -1,32 +1,40 @@
 <html>
 <head><meta charset="utf-8"><title>Каталог</title></head>
 <body>
-  <h1>Каталог книг</h1>
+{% if user.is_authenticated %}
+  <form method="post" action="{% url 'accounts:logout' %}">
+    {% csrf_token %}
+    <button type="submit">Выйти</button>
+  </form>
+{% else %}
+  <p>
+    <a href="{% url 'accounts:login' %}">Войти</a> |
+    <a href="{% url 'accounts:register' %}">Регистрация</a>
+  </p>
+{% endif %}
 
+<h1>Каталог книг</h1>
+
+{% if user.is_authenticated %}
   <p><a href="{% url 'bookshop:create' %}">Добавить новый элемент</a></p>
+{% endif %}
 
-  <ul>
-    {% for b in books %}
-      <li>
-        <b>{{ b.title }}</b> — {{ b.author }} — {{ b.price }}
+<ul>
+  {% for b in books %}
+    <li>
+      <b>{{ b.title }}</b> — {{ b.author }} — {{ b.price }}
+
+      {% if user.is_authenticated and user.profile.role == 'admin' %}
         [<a href="{% url 'bookshop:edit' b.pk %}">Изменить</a>]
         [<a href="{% url 'bookshop:delete' b.pk %}">Удалить</a>]
-      </li>
-    {% empty %}
-      <li>Книг нет</li>
-    {% endfor %}
-  </ul>
+      {% endif %}
 
-  {% if is_paginated %}
-    <div>
-      {% if page_obj.has_previous %}
-        <a href="?page={{ page_obj.previous_page_number }}">Назад</a>
+      {% if user.is_authenticated %}
       {% endif %}
-      <span>Стр. {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
-      {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}">Вперед</a>
-      {% endif %}
-    </div>
-  {% endif %}
+    </li>
+  {% empty %}
+    <li>Книг нет</li>
+  {% endfor %}
+</ul>
 </body>
 </html>
