@@ -9,6 +9,7 @@ User = get_user_model()
 class RegisterUser(forms.ModelForm):
     email = forms.EmailField(required=True, label="Электронная почта", widget=forms.EmailInput())
 
+    name = forms.CharField(label="Имя пользователя", required=False)
     password1 = forms.CharField(label="Пароль", widget=forms.PasswordInput)
     password2 = forms.CharField(label="Повтор пароля", widget=forms.PasswordInput)
 
@@ -56,6 +57,7 @@ class RegisterUser(forms.ModelForm):
     def save(self, commit=True):
         user = super().save(commit=False)
         user.set_password(self.cleaned_data["password1"])
+        user.first_name = self.cleaned_data["name"]
         if commit:
             user.save()
         return user
