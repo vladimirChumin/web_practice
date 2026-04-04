@@ -1,0 +1,15 @@
+<html>
+<head>
+    <title>Set Quantity</title>
+</head>
+<body>
+<h1>Set Quantity for {{ cart_item.book.title }}</h1>
+
+<form method="post">
+    {% csrf_token %}
+    <label for="quantity">Quantity (доступно: {{ cart_item.book.stock }}):</label>
+    <input type="number" id="quantity" name="quantity" value="{{ cart_item.quantity }}" min="1" max="{{ cart_item.book.stock }}">
+    <button type="submit">Update</button>
+</form>
+</body>
+</html>

@@ -1,0 +1,56 @@
+{% block content %}
+ <h1>Мои заказы</h1>
+
+ {% if orders %}
+ {% for order in orders %}
+ <section style="margin-bottom:24px; padding:12px; border:1px solid #ddd;">
+ <h3>Заказ \#{{ order.id }}</h3>
+ <p>Дата: {{ order.created_at|date:"d.m.Y H:i" }}</p>
+ <p>Сумма: {{ order.total_price }}</p>
+
+ {% with items=order.items.all %}
+ {% if items %}
+ <table width="100%" cellpadding="6" cellspacing="0" border="1">
+ <thead>
+ <tr>
+ <th align="left">Книга</th>
+ <th>Цена</th>
+ <th>Кол\-во</th>
+ <th>Итого</th>
+ </tr>
+ </thead>
+ <tbody>
+ {% for item in items %}
+ <tr>
+ <td>{{ item.book.title }}</td>
+ <td align="center">{{ item.price }}</td>
+ <td align="center">{{ item.quantity }}</td>
+ <td align="center">{{ item.price|floatformat:2|add:"0"|floatformat:2 }}</td>
+ </tr>
+ {% endfor %}
+ </tbody>
+ </table>
+ {% else %}
+ <p>Нет позиций в заказе.</p>
+ {% endif %}
+ {% endwith %}
+ </section>
+ {% endfor %}
+
+ {% if is_paginated %}
+ <nav>
+ {% if page_obj.has_previous %}
+ <a href="?page={{ page_obj.previous_page_number }}">Назад</a>
+ {% endif %}
+
+ <span>Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+
+ {% if page_obj.has_next %}
+ <a href="?page={{ page_obj.next_page_number }}">Вперёд</a>
+ {% endif %}
+ </nav>
+ {% endif %}
+ {% else %}
+ <p>У вас пока нет заказов.</p>
+ {% endif %}
+{% endblock %}

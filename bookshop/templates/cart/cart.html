@@ -1,0 +1,130 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Корзина</title>
+  <style>
+    body { font-family: sans-serif; padding: 16px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ddd; padding: 8px; }
+    th { text-align: left; }
+    form { margin: 0; }
+    .row { display:flex; gap:12px; align-items:center; }
+       .messages-wrap {
+         position: fixed;
+         top:16px;
+         right:16px;
+         z-index:9999;
+         display: flex;
+         flex-direction: column;
+         gap:10px;
+         max-width:360px;
+         }
+
+         .alert {
+         border-radius:12px;
+         padding:12px14px;
+         color: #fff;
+         font-size:14px;
+         line-height:1.35;
+         box-shadow:08px24px rgba(0,0,0,0.15);
+         animation: fadeInUp .25s ease;
+         cursor: pointer;
+         }
+
+         .alert-success { background: linear-gradient(135deg, #16a34a, #22c55e); }
+         .alert-error { background: linear-gradient(135deg, #dc2626, #ef4444); }
+         .alert-warning { background: linear-gradient(135deg, #d97706, #f59e0b); color: #111; }
+
+
+         .alert-hide {
+         animation: fadeOut .25s ease forwards;
+         }
+
+         @keyframes fadeInUp {
+         from { opacity:0; transform: translateY(-8px); }
+         to { opacity:1; transform: translateY(0); }
+         }
+
+         @keyframes fadeOut {
+         from { opacity:1; transform: translateY(0); }
+         to { opacity:0; transform: translateY(-8px); }
+         }
+  </style>
+</head>
+<body>
+
+{% if messages %}
+<div class="messages" id="messages" onclick="this.style.display='none'">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+<script>
+    setTimeout(() => {
+      const messages = document.getElementById('messages');
+      if (messages) messages.style.display = 'none';
+    }, 3000);
+</script>
+{% endif %}
+
+  <div class="row" style="justify-content: space-between;">
+    <h1>Корзина</h1>
+    <a href="{% url 'bookshop:list' %}">В каталог</a>
+  </div>
+
+  {% if items %}
+    <table>
+      <thead>
+        <tr>
+          <th>Книга</th>
+          <th>Цена</th>
+          <th>Количество</th>
+          <th>Сумма</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for it in items %}
+          <tr>
+            <td>{{ it.book.title }}</td>
+            <td>{{ it.book.price }}</td>
+
+            <td>
+              <form method="post" action="{% url 'cart:set_qty' it.book.id %}" class="row">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <input type="number" name="quantity" min="0" value="{{ it.quantity }}" style="width:80px;">
+                <button type="submit">Обновить</button>
+              </form>
+            </td>
+
+            <td>{{ it.row_total }}</td>
+
+            <td>
+              <form method="post" action="{% url 'cart:remove' it.book.id %}">
+                {% csrf_token %}
+                <button type="submit">Удалить</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <h3>Итого: {{ total }}</h3>
+
+  {% else %}
+    <p>Корзина пуста.</p>
+  {% endif %}
+
+    <h3>
+        <form method="post" action="{% url 'cart:checkout' %}">
+            {% csrf_token %}
+            <button type="submit">Оформить заказ</button>
+        </form>
+    </h3>
+
+</body>
+</html>

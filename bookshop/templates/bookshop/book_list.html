@@ -1,40 +1,149 @@
-<html>
-<head><meta charset="utf-8"><title>Каталог</title></head>
-<body>
-{% if user.is_authenticated %}
-  <form method="post" action="{% url 'accounts:logout' %}">
-    {% csrf_token %}
-    <button type="submit">Выйти</button>
-  </form>
-{% else %}
-  <p>
-    <a href="{% url 'accounts:login' %}">Войти</a> |
-    <a href="{% url 'accounts:register' %}">Регистрация</a>
-  </p>
-{% endif %}
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Каталог</title>
+      <style>
+        .messages {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.5);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 9999;
+        }
 
-<h1>Каталог книг</h1>
+        .alert {
+          background: white;
+          padding: 32px 48px;
+          border-radius: 8px;
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+          max-width: 500px;
+          text-align: center;
+          font-size: 18px;
+        }
 
-{% if user.is_authenticated %}
-  <p><a href="{% url 'bookshop:create' %}">Добавить новый элемент</a></p>
-{% endif %}
+        .alert-error {
+          border-left: 4px solid #dc3545;
+        }
 
-<ul>
-  {% for b in books %}
-    <li>
-      <b>{{ b.title }}</b> — {{ b.author }} — {{ b.price }}
+        .alert-success {
+          border-left: 4px solid #28a745;
+        }
 
-      {% if user.is_authenticated and user.profile.role == 'admin' %}
-        [<a href="{% url 'bookshop:edit' b.pk %}">Изменить</a>]
-        [<a href="{% url 'bookshop:delete' b.pk %}">Удалить</a>]
-      {% endif %}
+        .topbar {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 16px;
+          padding: 12px 16px;
+          border-bottom: 1px solid #ddd;
+        }
+
+        /* остальные стили */
+      </style>
+
+  </head>
+
+  <body>
+{% if messages %}
+    <div class="messages" id="messages" onclick="this.style.display='none'">
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+    <script>
+      setTimeout(() => {
+        const messages = document.getElementById('messages');
+        if (messages) messages.style.display = 'none';
+      }, 3000);
+    </script>
+  {% endif %}
+<header class="topbar">
+      <div>
+        {% if user.is_authenticated %}
+          <form method="post" action="{% url 'accounts:logout' %}">
+            {% csrf_token %}
+            <button type="submit">Выйти</button>
+          </form>
+        {% else %}
+          <a href="{% url 'accounts:login' %}">Войти</a> |
+          <a href="{% url 'accounts:register' %}">Регистрация</a>
+        {% endif %}
+      </div>
+
+      <div>
+        {% if user.is_authenticated %}
+          <a href="{% url 'accounts:profile' %}">Личный кабинет</a>
+        {% endif %}
+      </div>
+    </header>
+
+    <main class="content">
+      <h1>Каталог книг</h1>
 
       {% if user.is_authenticated %}
+        <p>
+          <a href="{% url 'bookshop:create' %}">Добавить новый элемент</a>
+        </p>
       {% endif %}
-    </li>
-  {% empty %}
-    <li>Книг нет</li>
-  {% endfor %}
-</ul>
-</body>
+
+      <ul>
+        {% for b in books %}
+          <li>
+            <p class="book-meta">
+              <strong>{{ b.title }}</strong> — {{ b.author }} — {{ b.price }}
+              <span class="stock">(Осталось: {{ b.stock }})</span>
+            </p>
+
+            <div class="actions">
+              {% if user.is_authenticated and user.profile.role == 'admin' %}
+                <a href="{% url 'bookshop:edit' b.pk %}">Изменить</a>
+                <a href="{% url 'bookshop:delete' b.pk %}">Удалить</a>
+              {% endif %}
+
+              {% if user.is_authenticated %}
+                <form method="post" action="{% url 'cart:add' b.pk %}" style="display: inline;">
+                  {% csrf_token %}
+                  <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+                  <button type="submit">Положить в корзину</button>
+                </form>
+              {% else %}
+                <a href="{% url 'accounts:login' %}?next={{ request.get_full_path }}">
+                  Войти, чтобы добавить в корзину
+                </a>
+              {% endif %}
+            </div>
+          </li>
+        {% empty %}
+          <li>Книг нет</li>
+        {% endfor %}
+      </ul>
+
+      {% if is_paginated %}
+        <nav class="pagination" aria-label="Пагинация каталога">
+          {% if page_obj.has_previous %}
+            <a href="?page=1">&laquo; первая</a>
+            <a href="?page={{ page_obj.previous_page_number }}">предыдущая</a>
+          {% endif %}
+
+          <span style="margin: 0 8px;">
+            страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
+          </span>
+
+          {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">следующая</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}">последняя &raquo;</a>
+          {% endif %}
+        </nav>
+      {% endif %}
+    </main>
+  </body>
 </html>

@@ -7,7 +7,7 @@ class BookListView(ListView):
     model = Book
     template_name = "bookshop/book_list.html"
     context_object_name = "books"
-    paginate_by = 50
+    paginate_by = 10
     ordering = ["id"]
 
 class BookCreateView(LoginRequiredMixin, CreateView):

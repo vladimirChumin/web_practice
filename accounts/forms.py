@@ -64,3 +64,49 @@ class RegisterUser(forms.ModelForm):
 
 class LoginForm(AuthenticationForm):
     pass
+
+class ProfileUpdateForm(forms.ModelForm):
+    password1 = forms.CharField(
+        label="Новый пароль",
+        widget=forms.PasswordInput,
+        required=False,
+    )
+    password2 = forms.CharField(
+        label="Повтор нового пароля",
+        widget=forms.PasswordInput,
+        required=False,
+    )
+
+    class Meta:
+        model = User
+        fields = ("email", "first_name")
+
+    def clean_email(self):
+        email = (self.cleaned_data.get("email") or "").strip().lower()
+        qs = User.objects.filter(email=email).exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise forms.ValidationError("Email занят.")
+        return email
+
+    def clean_password1(self):
+        p1 = self.cleaned_data.get("password1")
+        if p1:
+            validate_password(p1, self.instance)
+        return p1
+
+    def clean(self):
+        cleaned = super().clean()
+        p1 = cleaned.get("password1")
+        p2 = cleaned.get("password2")
+        if (p1 or p2) and p1 != p2:
+            self.add_error("password2", "Пароли не совпадают.")
+        return cleaned
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        p1 = self.cleaned_data.get("password1")
+        if p1:
+            user.set_password(p1)
+        if commit:
+            user.save()
+        return user

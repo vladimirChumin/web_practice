@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'bookshop.apps.BookshopConfig',
-    # 'cart.apps.CartConfig',
+    'cart.apps.CartConfig',
     'accounts.apps.AccountsConfig',
     # 'orders.apps.OrdersConfig',
 ]
@@ -92,6 +92,7 @@ DATABASES = {
 }
 
 
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 30
 
 AUTH_USER_MODEL = "auth.User"
 

@@ -1,6 +1,15 @@
 <html>
 <head><meta charset="utf-8"><title>Удаление</title></head>
 <body>
+
+{% if messages %}
+<div class="messages" id="messages" onclick="this.style.display='none'">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
   <h1>Удалить книгу?</h1>
   <p>{{ object.title }} — {{ object.author }}</p>
 

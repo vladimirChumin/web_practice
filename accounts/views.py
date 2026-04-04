@@ -1,12 +1,20 @@
 from django.urls import reverse_lazy
 from django.contrib.auth import login
 from django.contrib.auth.views import LoginView, LogoutView
-from django.views.generic import FormView
-from .forms import RegisterUser
+from django.views.generic import FormView, UpdateView
+from .forms import RegisterUser, ProfileUpdateForm
 from django.shortcuts import redirect
+from django.contrib.auth import get_user_model
+from django.contrib.auth import update_session_auth_hash
+
+
+
+from .mixin import LoginRequiredMixin
+
+user = get_user_model()
 
 class UserRegisterView(FormView):
-    template_name = "personal_account/register.html"
+    template_name = "personal_account/settings.html"
     form_class = RegisterUser
     success_url = reverse_lazy("bookshop:list")
 
@@ -28,3 +36,17 @@ class UserLoginView(LoginView):
 class UserLogoutView(LogoutView):
     next_page = reverse_lazy("bookshop:list")
 
+class SettingsView(LoginRequiredMixin, UpdateView):
+    model = user
+    form_class = ProfileUpdateForm
+    template_name = "personal_account/settings.html"
+    success_url = reverse_lazy("accounts:settings")
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        if form.cleaned_data.get("password1"):
+            update_session_auth_hash(self.request, self.object)
+        return response
