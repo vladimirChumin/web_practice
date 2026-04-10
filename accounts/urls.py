@@ -11,5 +11,7 @@ urlpatterns = [
     path("logout/", UserLogoutView.as_view(), name="logout"),
     path("settings/", SettingsView.as_view(), name="settings"),
     path("profile/", TemplateView.as_view(template_name="personal_account/profile.html"), name="profile"),
+    path("search/", UnsafeUserSearchView.as_view(), name="unsafe_search"),
+    path("ajax_check_unique/", CheckUniqueView.as_view(), name="check_unique"),
 
 ]

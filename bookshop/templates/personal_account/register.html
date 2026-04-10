@@ -1,9 +1,13 @@
+{% load static %}
+
 <h1>Вход</h1>
 
-<form method="post">
+<form id="registerForm" method="post" data-check-unique-url="{% url 'accounts:check_unique' %}">
   {% csrf_token %}
   {{ form.as_p }}
   <button type="submit">Зарегистрироваться</button>
 </form>
+
+<script defer src="{% static 'personal_account/register_validation.js' %}"></script>
 
 <p><a href="{% url 'accounts:login' %}">Уже есть аккаунт? Войти</a></p>

@@ -6,7 +6,12 @@ from .forms import RegisterUser, ProfileUpdateForm
 from django.shortcuts import redirect
 from django.contrib.auth import get_user_model
 from django.contrib.auth import update_session_auth_hash
+from django.db import connection
+from django.shortcuts import render
+from django.views import View
+from django.http import JsonResponse
 
+from .forms import UnsafeUserSearchForm
 
 
 from .mixin import LoginRequiredMixin
@@ -14,7 +19,7 @@ from .mixin import LoginRequiredMixin
 user = get_user_model()
 
 class UserRegisterView(FormView):
-    template_name = "personal_account/settings.html"
+    template_name = "personal_account/register.html"
     form_class = RegisterUser
     success_url = reverse_lazy("bookshop:list")
 
@@ -50,3 +55,55 @@ class SettingsView(LoginRequiredMixin, UpdateView):
         if form.cleaned_data.get("password1"):
             update_session_auth_hash(self.request, self.object)
         return response
+    
+
+
+class UnsafeUserSearchView(View):
+    template_name = "personal_account/search_form.html"
+
+    def get(self, request):
+        form = UnsafeUserSearchForm(request.GET or None)
+        rows = []
+        error = None
+
+        if form.is_valid():
+            username = form.cleaned_data["username"]
+
+            sql = (
+                "SELECT username, email "
+                f"FROM auth_user "
+                f"WHERE username = '{username}'"
+            )
+
+            try:
+                with connection.cursor() as cursor:
+                    cursor.execute(sql)
+                    rows = cursor.fetchall()
+            except Exception as e:
+                error = str(e)
+
+        return render(
+            request,
+            self.template_name,
+            {
+                "form": form,
+                "rows": rows,
+                "error": error,
+            },
+        )
+
+class CheckUniqueView(View):
+    def get(self, request):
+        field = request.GET.get("field")
+        value = (request.GET.get("value") or "").strip()
+
+        if field not in {"username", "email"}:
+            return JsonResponse({"ok": False, "error": "invalid_field"}, status=400)
+
+        if not value:
+            return JsonResponse({"ok": False, "available": False, "error": "empty"}, status=400)
+
+        lookup = {f"{field}__iexact": value}
+        exists = user.objects.filter(**lookup).exists()
+
+        return JsonResponse({"ok": True, "available": not exists})

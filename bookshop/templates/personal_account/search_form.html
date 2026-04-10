@@ -1,0 +1,18 @@
+<h1>Поиск пользователя</h1>
+
+<form method="get">
+    {{ form.as_p }}
+    <button type="submit">Найти</button>
+</form>
+
+{% if error %}
+    <p>Ошибка: {{ error }}</p>
+{% endif %}
+
+{% if rows %}
+    <ul>
+        {% for row in rows %}
+            <li>{{ row }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}

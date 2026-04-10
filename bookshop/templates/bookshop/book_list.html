@@ -45,6 +45,19 @@
           border-bottom: 1px solid #ddd;
         }
 
+        .filters {
+          margin: 16px 0;
+          padding: 12px 16px;
+          border: 1px solid #eee;
+          border-radius: 8px;
+          background: #fafafa;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 12px;
+          align-items: end;
+        }
+        .filters label { display: flex; gap: 8px; align-items: center; }
+        .filters input[type="text"], .filters select { padding: 6px 8px; }
         /* остальные стили */
       </style>
 
@@ -95,6 +108,34 @@
         </p>
       {% endif %}
 
+      <form class="filters" method="get">
+        <div>
+          <div style="font-size: 14px; margin-bottom: 4px;">Автор</div>
+          <input type="text" name="author" value="{{ request.GET.author }}" placeholder="Например, Andrew Hunt" />
+        </div>
+
+        <label>
+          <input type="checkbox" name="in_stock" value="1" {% if request.GET.in_stock %}checked{% endif %} />
+          Только в наличии
+        </label>
+
+        <label>
+          Показывать по:
+          <select name="per">
+            {% with per=request.GET.per|default:"5" %}
+              <option value="5" {% if per == "5" %}selected{% endif %}>5</option>
+              <option value="10" {% if per == "10" %}selected{% endif %}>10</option>
+              <option value="20" {% if per == "20" %}selected{% endif %}>20</option>
+            {% endwith %}
+          </select>
+        </label>
+
+        <div>
+          <button type="submit">Фильтровать</button>
+          <a href="{% url 'bookshop:list' %}" style="margin-left: 8px;">Сбросить</a>
+        </div>
+      </form>
+
       <ul>
         {% for b in books %}
           <li>
@@ -128,21 +169,23 @@
       </ul>
 
       {% if is_paginated %}
-        <nav class="pagination" aria-label="Пагинация каталога">
-          {% if page_obj.has_previous %}
-            <a href="?page=1">&laquo; первая</a>
-            <a href="?page={{ page_obj.previous_page_number }}">предыдущая</a>
-          {% endif %}
+        {% with author=request.GET.author|default:"" in_stock=request.GET.in_stock|default:"" per=request.GET.per|default:"" %}
+          <nav class="pagination" aria-label="Пагинация каталога">
+            {% if page_obj.has_previous %}
+              <a href="?page=1{% if author %}&author={{ author|urlencode }}{% endif %}{% if in_stock %}&in_stock={{ in_stock|urlencode }}{% endif %}{% if per %}&per={{ per|urlencode }}{% endif %}">&laquo; первая</a>
+              <a href="?page={{ page_obj.previous_page_number }}{% if author %}&author={{ author|urlencode }}{% endif %}{% if in_stock %}&in_stock={{ in_stock|urlencode }}{% endif %}{% if per %}&per={{ per|urlencode }}{% endif %}">предыдущая</a>
+            {% endif %}
 
-          <span style="margin: 0 8px;">
-            страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
-          </span>
+            <span style="margin: 0 8px;">
+              страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}
+            </span>
 
-          {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}">следующая</a>
-            <a href="?page={{ page_obj.paginator.num_pages }}">последняя &raquo;</a>
-          {% endif %}
-        </nav>
+            {% if page_obj.has_next %}
+              <a href="?page={{ page_obj.next_page_number }}{% if author %}&author={{ author|urlencode }}{% endif %}{% if in_stock %}&in_stock={{ in_stock|urlencode }}{% endif %}{% if per %}&per={{ per|urlencode }}{% endif %}">следующая</a>
+              <a href="?page={{ page_obj.paginator.num_pages }}{% if author %}&author={{ author|urlencode }}{% endif %}{% if in_stock %}&in_stock={{ in_stock|urlencode }}{% endif %}{% if per %}&per={{ per|urlencode }}{% endif %}">последняя &raquo;</a>
+            {% endif %}
+          </nav>
+        {% endwith %}
       {% endif %}
     </main>
   </body>

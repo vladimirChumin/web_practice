@@ -26,17 +26,17 @@ class RegisterUser(forms.ModelForm):
             }
         }
 
-    def clean_username(self):
-        username = self.cleaned_data["username"].strip()
-        if User.objects.filter(username=username).exists():
-            raise forms.ValidationError("Логин занят.")
-        return username
+    # def clean_username(self):
+    #     username = (self.cleaned_data.get("username") or "").strip()
+    #     if User.objects.filter(username__iexact=username).exists():
+    #         raise forms.ValidationError("Логин занят.")
+    #     return username
 
-    def clean_email(self):
-        email = self.cleaned_data["email"].strip().lower()
-        if User.objects.filter(email=email).exists():
-            raise forms.ValidationError("Email занят.")
-        return email
+    # def clean_email(self):
+    #     email = (self.cleaned_data.get("email") or "").strip().lower()
+    #     if User.objects.filter(email__iexact=email).exists():
+    #         raise forms.ValidationError("Email занят.")
+    #     return email
 
     def clean_password1(self):
         p1 = self.cleaned_data.get("password1")
@@ -110,3 +110,10 @@ class ProfileUpdateForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+
+class UnsafeUserSearchForm(forms.Form):
+    username = forms.CharField(
+        label="Логин",
+        required=True,
+        max_length=150,
+    )
