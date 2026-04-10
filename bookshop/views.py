@@ -7,8 +7,16 @@ class BookListView(ListView):
     model = Book
     template_name = "bookshop/book_list.html"
     context_object_name = "books"
-    paginate_by = 10
+    paginate_by = 5
     ordering = ["id"]
+
+    def get_paginate_by(self, queryset):
+        try:
+            per = int(self.request.GET.get("per", self.paginate_by))
+            return max(1, per)
+        except ValueError:
+            return self.paginate_by
+
 
 class BookCreateView(LoginRequiredMixin, CreateView):
     model = Book
